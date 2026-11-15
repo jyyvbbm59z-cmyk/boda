@@ -49,7 +49,7 @@ export const EVENT = {
   maxSongs: 3,
 
   // Música de fondo: deja el MP3 en public/ y pon aquí su nombre ('' = sin música)
-  music: '',
+  music: 'musica.mp3',
 
   // Regalo. Deja iban vacío ('') para ocultar la sección.
   gift: {
