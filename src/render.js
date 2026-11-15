@@ -69,7 +69,7 @@ export async function renderHome(asset, env, url) {
   const tokens = {
     A: esc(a),
     B: esc(b),
-    TITLE: esc(`${a} y ${b} se casan`),
+    TITLE: esc(`¡Nos casamos!`),
     DESCRIPTION: esc(`${longDate(EVENT.date)} en ${EVENT.venue.name}, ${EVENT.venue.town}. Confirma tu asistencia aquí.`),
     DATE_ISO: esc(EVENT.date),
     DATE_LONG: esc(longDate(EVENT.date).replace(/^./, (c) => c.toUpperCase())),
