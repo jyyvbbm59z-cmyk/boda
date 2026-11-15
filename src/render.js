@@ -51,7 +51,14 @@ function blocks() {
       </section>`
     : '';
 
-  return { schedule, stops, faq, gift };
+  const music = EVENT.music
+    ? `<audio id="musica" src="/${esc(EVENT.music.replace(/^\//, ''))}" loop preload="none"></audio>
+      <button type="button" class="musica" id="boton-musica" aria-pressed="false" aria-label="Poner música">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V5l11-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg>
+      </button>`
+    : '';
+
+  return { schedule, stops, faq, gift, music };
 }
 
 
@@ -83,6 +90,7 @@ export async function renderHome(asset, env, url) {
     STOPS: b_.stops,
     FAQ: b_.faq,
     GIFT: b_.gift,
+    MUSIC: b_.music,
   };
   const html = (await asset.text()).replace(/\{\{([A-Z_]+)\}\}/g, (m, k) => (k in tokens ? tokens[k] : m));
   return new Response(html, {

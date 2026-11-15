@@ -308,3 +308,27 @@ input:focus, textarea:focus, select:focus { outline: none; border-color: var(--o
 .enlace-propio { background: var(--verde-agua); padding: 1rem 1.1rem; margin: 0 0 1rem; text-align: center; }
 .enlace-propio p { margin-bottom: .5rem; }
 .enlace-propio a { font-weight: 600; word-break: break-all; }
+
+/* Música */
+.musica {
+  position: fixed;
+  top: max(.9rem, env(safe-area-inset-top));
+  right: .9rem;
+  z-index: 11;
+  width: 2.9rem; height: 2.9rem;
+  border-radius: 50%;
+  border: 1px solid var(--linea);
+  background: rgba(255, 254, 251, .9);
+  color: var(--oro);
+  display: grid; place-items: center;
+  cursor: pointer;
+  box-shadow: 0 4px 14px -6px rgba(78, 104, 92, .4);
+}
+.musica svg { width: 1.3rem; height: 1.3rem; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.musica:not(.sonando)::after {
+  content: ''; position: absolute; width: 1.9rem; height: 1.5px; background: currentColor; transform: rotate(-45deg);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .musica.sonando svg { animation: latido 1.6s ease-in-out infinite; }
+}
+@keyframes latido { 50% { transform: scale(1.12); } }

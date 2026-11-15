@@ -30,6 +30,38 @@
     try { await navigator.clipboard.writeText(txt); b.textContent = 'Copiado'; setTimeout(() => (b.textContent = 'Copiar'), 2000); } catch {}
   });
 
+  // ── Música de fondo ──────────────────────────
+  // Los móviles no dejan sonar nada hasta que la persona toca la pantalla:
+  // arranca con el primer toque (salvo que la haya quitado) y el botón la para.
+  const audio = $('#musica');
+  const botonMusica = $('#boton-musica');
+  if (audio && botonMusica) {
+    const OFF = 'boda-musica-off';
+    const pintar = () => {
+      const on = !audio.paused;
+      botonMusica.setAttribute('aria-pressed', String(on));
+      botonMusica.setAttribute('aria-label', on ? 'Quitar música' : 'Poner música');
+      botonMusica.classList.toggle('sonando', on);
+    };
+    const subir = () => {
+      audio.volume = 0;
+      const t = setInterval(() => { audio.volume = Math.min(0.6, audio.volume + 0.05); if (audio.volume >= 0.6) clearInterval(t); }, 120);
+    };
+    const tocar = () => audio.play().then(subir).catch(() => {}).finally(pintar);
+    botonMusica.addEventListener('click', () => {
+      if (audio.paused) { store.clear(OFF); tocar(); }
+      else { audio.pause(); store.set(OFF, '1'); pintar(); }
+    });
+    const primerToque = (e) => {
+      if (e.target.closest('#boton-musica')) return;
+      if (!store.get(OFF) && audio.paused) tocar();
+    };
+    document.addEventListener('pointerdown', primerToque, { once: true });
+    document.addEventListener('keydown', primerToque, { once: true });
+    audio.addEventListener('pause', pintar);
+    audio.addEventListener('play', pintar);
+  }
+
   // ── Botón flotante ───────────────────────────
   const flotante = $('#flotante');
   const portada = $('.portada');
@@ -50,7 +82,6 @@
   const state = { config: null, invite: null, access: '', step: 0, data: null, done: false, sending: false, error: '' };
 
   const BUS = { none: 'No, gracias', out: 'Solo ida', back: 'Solo vuelta', both: 'Ida y vuelta' };
-  const menuLabel = (id) => state.config.menus.find((m) => m.id === id)?.label || '';
   const stop = (id) => state.config.stops.find((s) => s.id === id);
 
   const steps = () => (state.data.attending === false ? ['asistencia', 'revisar'] : ['asistencia', 'personas', 'autobus', 'canciones', 'revisar']);
@@ -104,7 +135,7 @@
       state.invite = { token: '', label: '', maxSeats: state.config.maxPerResponse, childrenAllowed: true, status: 'pending', open: state.config.open };
       state.data = {
         attending: null, contactName: '', phone: '',
-        guests: [{ name: '', isChild: false, menu: '', allergies: '' }],
+        guests: [{ name: '', isChild: false, allergies: '' }],
         bus: { type: 'none', stop: '', seats: 0 }, songs: [], message: '',
       };
       state.step = 0;
@@ -118,7 +149,7 @@
   function fromInvite(inv) {
     const guests = inv.guests.length
       ? inv.guests.map((g) => ({ ...g }))
-      : [{ name: inv.contactName || '', isChild: false, menu: '', allergies: '' }];
+      : [{ name: inv.contactName || '', isChild: false, allergies: '' }];
     return {
       attending: inv.status === 'yes' ? true : inv.status === 'no' ? false : null,
       contactName: inv.contactName || (inv.guests[0]?.name ?? ''),
@@ -138,7 +169,7 @@
         <div class="campo">
           <label for="codigo">Código de la invitación
             <span class="ayuda">Lo encontraréis en la invitación.</span></label>
-          <input id="codigo" name="codigo" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" value="${esc(value)}" required>
+          <input id="codigo" name="codigo" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" value="${esc(value)}" required>
         </div>
         <button class="boton boton--ancho" type="submit">Entrar</button>
         ${error ? `<p class="aviso-error" role="alert">${esc(error)}</p>` : ''}
@@ -207,7 +238,6 @@
     personas() {
       const { guests } = state.data;
       const inv = state.invite;
-      const menus = state.config.menus;
       const people = guests.map((g, i) => `
         <div class="persona" data-i="${i}">
           <div class="persona__cabecera">
@@ -219,11 +249,6 @@
             <input id="name-${i}" name="name-${i}" type="text" maxlength="60" value="${esc(g.name)}" autocomplete="off">
           </div>
           ${inv.childrenAllowed ? `<label class="casilla"><input type="checkbox" name="child-${i}" ${g.isChild ? 'checked' : ''}> Es un niño o una niña</label>` : ''}
-          <fieldset class="opciones opciones--2">
-            <legend class="etiqueta">Menú</legend>
-            ${menus.filter((m) => !m.kids || g.isChild).map((m) => `
-              <label class="opcion"><input type="radio" name="menu-${i}" value="${esc(m.id)}" ${g.menu === m.id ? 'checked' : ''}><span>${esc(m.label)}</span></label>`).join('')}
-          </fieldset>
           <details class="alergias" ${g.allergies ? 'open' : ''}>
             <summary>¿Alguna alergia o intolerancia?</summary>
             <div class="campo">
@@ -306,7 +331,7 @@
     const s = stop(d.bus.stop);
     const songs = d.songs.filter((x) => x.title);
     return `<ul class="resumen">
-      ${d.guests.map((g) => `<li><b>${g.isChild ? 'Niño o niña' : 'Persona'}</b>${esc(g.name)}, menú ${esc(menuLabel(g.menu).toLowerCase())}${g.allergies ? `. Alergias: ${esc(g.allergies)}` : ''}</li>`).join('')}
+      ${d.guests.map((g) => `<li><b>${g.isChild ? 'Niño o niña' : 'Persona'}</b>${esc(g.name)}${g.allergies ? `. Alergias: ${esc(g.allergies)}` : ''}</li>`).join('')}
       <li><b>Autobús</b>${d.bus.type === 'none' ? 'No lo necesitáis' : `${BUS[d.bus.type]} desde ${esc(s?.name || '')}, ${d.bus.seats} ${d.bus.seats === 1 ? 'plaza' : 'plazas'}`}</li>
       ${songs.length ? `<li><b>Canciones</b>${songs.map((x) => esc(x.title + (x.artist ? ` (${x.artist})` : ''))).join('<br>')}</li>` : ''}
       ${d.message ? `<li><b>Mensaje</b>${esc(d.message)}</li>` : ''}
@@ -387,11 +412,8 @@
       d.guests = d.guests.map((g, i) => ({
         name: val(`name-${i}`).trim(),
         isChild: !!f.elements[`child-${i}`]?.checked,
-        menu: f.querySelector(`[name="menu-${i}"]:checked`)?.value || '',
         allergies: val(`allergies-${i}`).trim(),
       }));
-      // si deja de ser niño, fuera el menú infantil
-      d.guests.forEach((g) => { if (!g.isChild && state.config.menus.find((m) => m.id === g.menu)?.kids) g.menu = ''; });
     }
     if (name === 'autobus') {
       d.bus.type = f.querySelector('[name=busType]:checked')?.value || 'none';
@@ -416,8 +438,6 @@
     if (name === 'personas') {
       const i = d.guests.findIndex((g) => !g.name);
       if (i >= 0) return [`Falta el nombre de la persona ${i + 1}.`, `#name-${i}`];
-      const j = d.guests.findIndex((g) => !g.menu);
-      if (j >= 0) return [`Elige el menú de ${d.guests[j].name}.`, `[name="menu-${j}"]`];
     }
     if (name === 'autobus' && d.bus.type !== 'none') {
       if (!d.bus.stop) return ['Elige la parada del autobús.', '[name=busStop]'];
@@ -466,7 +486,7 @@
     if (!b) return;
     const a = b.dataset.accion;
     if (a === 'atras') { collect(); state.step -= 1; renderStep(); scrollToForm(); }
-    if (a === 'añadir') { collect(); state.data.guests.push({ name: '', isChild: false, menu: '', allergies: '' }); renderStep(); $(`#name-${state.data.guests.length - 1}`)?.focus(); }
+    if (a === 'añadir') { collect(); state.data.guests.push({ name: '', isChild: false, allergies: '' }); renderStep(); $(`#name-${state.data.guests.length - 1}`)?.focus(); }
     if (a === 'quitar') { collect(); state.data.guests.splice(Number(b.dataset.i), 1); renderStep(); }
     if (a === 'mas' || a === 'menos') {
       const out = $('#plazas');

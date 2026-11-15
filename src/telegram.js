@@ -1,7 +1,6 @@
 import { EVENT } from './config.js';
 
 const esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-const menuLabel = (id) => EVENT.menus.find((m) => m.id === id)?.label || id;
 const stopName = (id) => EVENT.bus.stops.find((s) => s.id === id)?.name || id;
 const pl = (n, uno, varios) => `${n} ${n === 1 ? uno : varios}`;
 const BUS = { out: 'solo ida', back: 'solo vuelta', both: 'ida y vuelta' };
@@ -25,15 +24,12 @@ export function notifyResponse(env, r) {
   const head = r.edited ? '✏️ <b>Cambio</b> · ' : '';
   if (!r.attending) return broadcast(env, `${head}❌ <b>${esc(r.label)}</b> no puede venir.${r.message ? `\n💬 «${esc(r.message)}»` : ''}`);
 
-  const counts = {};
-  for (const g of r.guests) counts[g.menu] = (counts[g.menu] || 0) + 1;
-  const menus = Object.entries(counts).map(([id, n]) => `${menuLabel(id)} ×${n}`).join(', ');
   const kids = r.guests.filter((g) => g.isChild).length;
   const allergies = r.guests.filter((g) => g.allergies).map((g) => `${esc(g.name)} (${esc(g.allergies)})`);
 
   const lines = [
     `${head}✅ <b>${esc(r.label)}</b> confirma: ${pl(r.guests.length, 'persona', 'personas')}${kids ? ` (${pl(kids, 'niño', 'niños')})` : ''}`,
-    `🍽 ${esc(menus)}`,
+    `👥 ${r.guests.map((g) => esc(g.name) + (g.isChild ? ' (niño)' : '')).join(', ')}`,
   ];
   if (allergies.length) lines.push(`⚠️ Alergias: ${allergies.join('; ')}`);
   lines.push(r.bus.type === 'none' ? '🚗 Sin autobús' : `🚌 ${BUS[r.bus.type]} desde ${esc(stopName(r.bus.stop))} · ${pl(r.bus.seats, 'plaza', 'plazas')}`);
@@ -46,10 +42,9 @@ export function notifyResponse(env, r) {
 
 async function summary(env) {
   const db = env.DB;
-  const [status, people, menus, bus, songs, allergies] = await Promise.all([
+  const [status, people, bus, songs, allergies] = await Promise.all([
     db.prepare('SELECT status, COUNT(*) n FROM groups GROUP BY status').all(),
     db.prepare(`SELECT SUM(1 - is_child) adults, SUM(is_child) kids FROM guests JOIN groups g ON g.id = group_id WHERE g.status = 'yes'`).first(),
-    db.prepare(`SELECT menu, COUNT(*) n FROM guests JOIN groups g ON g.id = group_id WHERE g.status = 'yes' GROUP BY menu ORDER BY n DESC`).all(),
     db.prepare(`SELECT bus_stop_id stop,
                   SUM(CASE WHEN bus_type IN ('out','both') THEN bus_seats ELSE 0 END) ida,
                   SUM(CASE WHEN bus_type IN ('back','both') THEN bus_seats ELSE 0 END) vuelta
@@ -64,8 +59,6 @@ async function summary(env) {
     `❌ No vienen: ${pl(st.no || 0, 'respuesta', 'respuestas')}`,
     `🪑 Plazas: ${(people?.adults || 0) + (people?.kids || 0)} de ${EVENT.capacity}`,
     '',
-    '<b>Menús</b>',
-    ...(menus.results.length ? menus.results.map((m) => `· ${menuLabel(m.menu)}: ${m.n}`) : ['· Todavía nada']),
     `⚠️ Personas con alergias: ${allergies?.n || 0}`,
     '',
     '<b>Autobús</b>',
@@ -95,7 +88,7 @@ async function allergyList(env) {
 
 const HELP = [
   '<b>Comandos</b>',
-  '/resumen — cuántos vienen, plazas, menús y autobús',
+  '/resumen — cuántos vienen, plazas, alergias y autobús',
   '/canciones — lista para el DJ',
   '/alergias — lista para el catering',
 ].join('\n');

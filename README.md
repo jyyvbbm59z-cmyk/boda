@@ -56,6 +56,7 @@ npx wrangler secret put RSVP_CODE      # p. ej. "Paula y Carlos" (da igual mayú
 ```
 
 - Quien lo tenga puede confirmar. Entra con `https://…/?c=CODIGO` o escribiéndolo en la web.
+- Da igual cómo se escriba: mayúsculas, minúsculas, tildes o espacios.
 - Hay un máximo de **200 plazas** en total y **6 personas por respuesta** (`capacity` y `maxPerResponse` en `src/config.js`).
 - Al confirmar, cada uno recibe **su propio enlace** (`?r=XXXX`) para cambiar la respuesta. El móvil lo recuerda solo.
 - Sin `RSVP_CODE` puesto, el formulario está cerrado.

@@ -85,7 +85,7 @@ async function seatsTaken(env, exceptGroupId = 0) {
 
 function publicConfig() {
   return {
-    menus: EVENT.menus,
+    music: EVENT.music,
     stops: EVENT.bus.stops.map(({ id, name, out, back }) => ({ id, name, out, back })),
     maxSongs: EVENT.maxSongs,
     maxPerResponse: EVENT.maxPerResponse,
@@ -132,7 +132,7 @@ async function getResponse(env, raw) {
     phone: g.phone || '',
     bus: { type: g.bus_type, stop: g.bus_stop_id, seats: g.bus_seats },
     message: g.message || '',
-    guests: guests.map((x) => ({ name: x.name, isChild: !!x.is_child, menu: x.menu || '', allergies: x.allergies || '' })),
+    guests: guests.map((x) => ({ name: x.name, isChild: !!x.is_child, allergies: x.allergies || '' })),
     songs,
     open: isOpen(),
   });
@@ -172,20 +172,15 @@ async function saveRsvp(request, env, ctx) {
   let songs = [];
 
   if (attending) {
-    const menuIds = new Map(EVENT.menus.map((m) => [m.id, m]));
     guests = (Array.isArray(body.guests) ? body.guests : []).map((x) => ({
       name: clean(x?.name, 60),
       isChild: childrenAllowed ? x?.isChild === true : false,
-      menu: clean(x?.menu, 30),
       allergies: clean(x?.allergies, 200),
     }));
     if (guests.length < 1) return json({ error: 'Añade al menos una persona.' }, 400);
     if (guests.length > maxSeats) return json({ error: `Como máximo ${maxSeats} personas por respuesta. Si sois más, enviad otra.` }, 400);
     for (const p of guests) {
       if (!p.name) return json({ error: 'Falta el nombre de alguna persona.' }, 400);
-      const menu = menuIds.get(p.menu);
-      if (!menu) return json({ error: `Elige el menú de ${p.name}.` }, 400);
-      if (menu.kids && !p.isChild) return json({ error: `El menú ${menu.label.toLowerCase()} es solo para niños (${p.name}).` }, 400);
     }
 
     const free = EVENT.capacity - (await seatsTaken(env, g?.id || 0));
@@ -241,7 +236,7 @@ async function saveRsvp(request, env, ctx) {
     for (const p of guests) {
       stmts.push(
         env.DB.prepare('INSERT INTO guests (group_id, name, is_child, menu, allergies) VALUES (?, ?, ?, ?, ?)').bind(
-          groupId, p.name, p.isChild ? 1 : 0, p.menu, p.allergies || null
+          groupId, p.name, p.isChild ? 1 : 0, null, p.allergies || null
         )
       );
     }

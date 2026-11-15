@@ -27,18 +27,11 @@ export const EVENT = {
     { time: '12:30', title: 'Llegada', text: 'Os esperamos en la entrada de la finca.' },
     { time: '13:00', title: 'Ceremonia civil', text: 'En el jardín. Cortita, prometido.' },
     { time: '14:00', title: 'Cóctel', text: 'Junto a la pérgola.' },
-    { time: '15:30', title: 'Comida', text: 'Con el menú que elijáis aquí abajo.' },
+    { time: '15:30', title: 'Comida', text: 'Si tenéis alguna alergia, indicadlo al confirmar.' },
     { time: '18:30', title: 'Fiesta', text: 'Barra libre y las canciones que propongáis.' },
     { time: '23:00', title: 'Última vuelta', text: 'Sale el último autobús.' },
   ],
 
-  // Menús que se pueden elegir. "kids: true" = solo para niños.
-  menus: [
-    { id: 'carne', label: 'Carne' },
-    { id: 'pescado', label: 'Pescado' },
-    { id: 'vegetariano', label: 'Vegetariano' },
-    { id: 'infantil', label: 'Infantil', kids: true },
-  ],
 
   // Paradas del autobús (PENDIENTE)
   bus: {
@@ -55,6 +48,9 @@ export const EVENT = {
 
   maxSongs: 3,
 
+  // Música de fondo: deja el MP3 en public/ y pon aquí su nombre ('' = sin música)
+  music: '',
+
   // Regalo. Deja iban vacío ('') para ocultar la sección.
   gift: {
     text: 'Lo mejor que nos podéis regalar es venir. Si además queréis tener un detalle, aquí tenéis nuestra cuenta.',
@@ -63,7 +59,7 @@ export const EVENT = {
 
   faq: [
     { q: '¿Cómo hay que ir vestido?', a: 'Formal pero cómodo. La ceremonia es en jardín: mejor tacón ancho que de aguja.' },
-    { q: '¿Pueden venir los niños?', a: 'Claro. Al confirmar, marcad quién es niño o niña y elegid su menú infantil.' },
+    { q: '¿Pueden venir los niños?', a: 'Claro. Al confirmar, marcad quién es niño o niña para que el catering lo tenga en cuenta.' },
     { q: '¿Dónde está el código para confirmar?', a: 'En la invitación. Si no lo encontráis, preguntadnos.' },
     { q: '¿Y si cambio de idea?', a: 'Al confirmar os damos un enlace propio. Desde ese enlace (o desde este mismo móvil) podéis cambiar la respuesta hasta la fecha límite.' },
     { q: '¿A quién llamo si tengo dudas?', a: 'A cualquiera de los dos. Paula: 600 000 000. Carlos: 600 000 000.' }, // PENDIENTE
