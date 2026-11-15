@@ -28,7 +28,7 @@ export const EVENT = {
     { time: '13:00', title: 'Ceremonia civil', text: 'En el jardín. Cortita, prometido.' },
     { time: '14:00', title: 'Cóctel', text: 'Junto a la pérgola.' },
     { time: '15:30', title: 'Comida', text: 'Si tenéis alguna alergia, indicadlo al confirmar.' },
-    { time: '18:30', title: 'Fiesta', text: 'Barra libre y las canciones que propongáis.' },
+    { time: '18:00', title: 'Fiesta', text: 'Barra libre y las canciones que propongáis.' },
     { time: '23:00', title: 'Última vuelta', text: 'Sale el último autobús.' },
   ],
 
@@ -59,7 +59,7 @@ export const EVENT = {
 
   faq: [
     { q: '¿Cómo hay que ir vestido?', a: 'Formal pero cómodo. La ceremonia es en jardín: mejor tacón ancho que de aguja.' },
-    { q: '¿Pueden venir los niños?', a: 'Claro. Al confirmar, marcad quién es niño o niña para que el catering lo tenga en cuenta.' },
+    { q: '¿Pueden venir los niños?', a: 'Claro que no, organízate y déjalos con los abuelos. Aunque si no tienes a nadie, pues marca que los traerás, pero les daremos de comer papas, salchichas y azúcar a saco. Luego ya los aguantas tú :)' },
     { q: '¿Dónde está el código para confirmar?', a: 'En la invitación. Si no lo encontráis, preguntadnos.' },
     { q: '¿Y si cambio de idea?', a: 'Al confirmar os damos un enlace propio. Desde ese enlace (o desde este mismo móvil) podéis cambiar la respuesta hasta la fecha límite.' },
     { q: '¿A quién llamo si tengo dudas?', a: 'A cualquiera de los dos. Paula: 600 000 000. Carlos: 600 000 000.' }, // PENDIENTE
