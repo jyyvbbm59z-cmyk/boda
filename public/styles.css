@@ -162,7 +162,8 @@ main { padding-bottom: 1rem; }
 .faq[open] summary::after { transform: translateY(-50%) rotate(45deg); }
 .faq p { color: var(--verde-suave); padding-bottom: .5rem; }
 
-.iban { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; }
+#regalo { text-align: center; }
+.iban { display: flex; flex-direction: column; align-items: center; gap: .75rem; }
 .iban code { font: 600 1.05rem/1.4 var(--texto); letter-spacing: .04em; }
 
 .pie { position: relative; text-align: center; padding: 2rem var(--margen) 11rem; overflow: hidden; }

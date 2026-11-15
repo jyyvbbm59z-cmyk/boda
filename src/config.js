@@ -54,7 +54,7 @@ export const EVENT = {
   // Regalo. Deja iban vacío ('') para ocultar la sección.
   gift: {
     text: 'Lo mejor que nos podéis regalar es venir. Si además queréis tener un detalle, aquí tenéis nuestra cuenta.',
-    iban: '', // PENDIENTE, p. ej. 'ES00 0000 0000 0000 0000 0000'
+    iban: 'ES00 0000 0000 0000 0000 0000', // PENDIENTE: poner el número de verdad
   },
 
   faq: [
