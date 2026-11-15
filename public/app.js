@@ -72,21 +72,6 @@
     window.addEventListener('pagehide', salir);
   }
 
-  // ── Botón flotante ───────────────────────────
-  const flotante = $('#flotante');
-  const portada = $('.portada');
-  const confirmar = $('#confirmar');
-  if (flotante && 'IntersectionObserver' in window) {
-    const vis = { portada: true, confirmar: false };
-    const update = () => flotante.classList.toggle('visible', !vis.portada && !vis.confirmar && !state.done);
-    new IntersectionObserver((es) => es.forEach((en) => {
-      vis[en.target === portada ? 'portada' : 'confirmar'] = en.isIntersecting;
-      update();
-    }), { threshold: 0.05 }).observe(portada);
-    new IntersectionObserver((es) => es.forEach((en) => { vis.confirmar = en.isIntersecting; update(); }), { threshold: 0.05 }).observe(confirmar);
-    window.__updateFlotante = update;
-  }
-
   // ── Formulario de confirmación ───────────────
   const root = $('#rsvp');
   const state = { config: null, invite: null, access: '', step: 0, data: null, done: false, sending: false, error: '' };
@@ -372,7 +357,6 @@
   function renderThanks() {
     const d = state.data;
     state.done = true;
-    window.__updateFlotante?.();
     root.innerHTML = `
       <div class="gracias">
         <p class="saludo">${d.attending ? `¡Gracias, ${esc(d.contactName)}!` : `Gracias por avisar, ${esc(d.contactName)}`}</p>
@@ -406,7 +390,7 @@
     });
   }
 
-  const scrollToForm = () => confirmar.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+  const scrollToForm = () => $('#confirmar').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
 
   // ── Lectura y validación ─────────────────────
 

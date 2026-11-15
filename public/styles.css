@@ -50,7 +50,7 @@ strong { font-weight: 600; }
   min-height: 100svh;
   display: grid;
   place-items: center;
-  padding: max(3.5rem, env(safe-area-inset-top)) var(--margen) 11rem;
+  padding: max(3.5rem, env(safe-area-inset-top)) var(--margen) 10rem;
   overflow: hidden;
   text-align: center;
 }
@@ -74,7 +74,7 @@ strong { font-weight: 600; }
 .mensaje { font-size: .98rem; line-height: 1.45; letter-spacing: .02em; max-width: 22rem; margin: 0 auto .9rem; }
 .fecha { font-size: 1.45rem; letter-spacing: .04em; margin-bottom: .5rem; }
 .lugar { font-size: .95rem; line-height: 1.5; letter-spacing: .03em; }
-.cuenta { font-size: 1rem; color: var(--verde-suave); min-height: 1.6em; margin: 1.25rem 0 1rem; }
+.cuenta { font-size: 1rem; color: var(--verde-suave); min-height: 1.6em; margin: 1.25rem 0 0; }
 
 /* El momento: los nombres se escriben y crecen las flores */
 @media (prefers-reduced-motion: no-preference) {
@@ -82,7 +82,9 @@ strong { font-weight: 600; }
   .nombres__uno { animation: escribir 1.1s cubic-bezier(.5, .1, .3, 1) .35s both; }
   .nombres__y { animation: escribir .4s ease-out 1.35s both; }
   .nombres__dos { animation: escribir 1.1s cubic-bezier(.5, .1, .3, 1) 1.6s both; }
-  .mensaje, .fecha, .lugar, .cuenta, .tarjeta .boton { animation: aparecer .9s ease 2.4s both; }
+  .mensaje, .fecha, .lugar, .cuenta { animation: aparecer .9s ease 2.4s both; }
+  .bajar { animation: aparecer .9s ease 3s both; }
+  .bajar svg { animation: bajar 2.2s ease-in-out 3.5s infinite; }
   .flora--arriba { animation: brotar 1.4s ease-out .2s both; transform-origin: 0 0; }
   .flora--flores { animation: brotar 1.4s ease-out .5s both; transform-origin: 0 100%; }
   .flora--derecha { animation: brotar 1.4s ease-out .8s both; transform-origin: 100% 100%; }
@@ -90,6 +92,16 @@ strong { font-weight: 600; }
 @keyframes escribir { from { clip-path: inset(-25% 100% -25% -10%); } to { clip-path: inset(-25% -10% -25% -10%); } }
 @keyframes brotar { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: none; } }
 @keyframes aparecer { from { opacity: 0; } to { opacity: 1; } }
+@keyframes bajar { 0%, 60%, 100% { transform: none; } 30% { transform: translateY(6px); } }
+
+/* Flechas para bajar */
+.bajar {
+  display: grid; place-items: center;
+  width: 4rem; height: 4.5rem;
+  margin: .75rem auto 0;
+  color: var(--oro);
+}
+.bajar svg { width: 2.2rem; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 
 /* ── Secciones ──────────────────────────────── */
 main { padding-bottom: 1rem; }
@@ -181,24 +193,6 @@ main { padding-bottom: 1rem; }
 .boton--ancho { width: 100%; }
 .boton[disabled] { opacity: .55; cursor: wait; }
 
-.flotante {
-  position: fixed;
-  left: 50%;
-  bottom: max(1rem, env(safe-area-inset-bottom));
-  transform: translate(-50%, 180%);
-  z-index: 10;
-  background: var(--verde);
-  color: var(--tarjeta);
-  font: 400 .9rem/1.2 var(--texto);
-  text-transform: uppercase;
-  letter-spacing: .12em;
-  text-decoration: none;
-  padding: 1rem 1.6rem .85rem;
-  box-shadow: 0 10px 28px -10px rgba(78, 104, 92, .6);
-  transition: transform .3s ease;
-  white-space: nowrap;
-}
-.flotante.visible { transform: translate(-50%, 0); }
 
 /* ── Formulario: una tarjeta de papel ───────── */
 .plazo { text-align: center; color: var(--verde-suave); }
@@ -297,7 +291,7 @@ input:focus, textarea:focus, select:focus { outline: none; border-color: var(--o
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  .flotante, .opcion span, .faq summary::after { transition: none; }
+  .opcion span, .faq summary::after { transition: none; }
 }
 
 @media (min-width: 48rem) {

@@ -38,7 +38,9 @@
       <p class="fecha"><time datetime="{{DATE_ISO}}">{{DATE_CARD}}</time></p>
       <p class="lugar">{{VENUE}},<br>{{ADDRESS}}</p>
       <p class="cuenta" id="cuenta" data-fecha="{{DATE_ISO}}"></p>
-      <a class="boton" href="#confirmar">Confirmar asistencia</a>
+      <a class="bajar" href="#dia" aria-label="Ver la información de la boda">
+        <svg viewBox="0 0 24 36" aria-hidden="true"><path d="M4 6l8 8 8-8"/><path d="M4 18l8 8 8-8"/></svg>
+      </a>
     </div>
   </header>
 
@@ -67,19 +69,19 @@
     </section>
 
 
+    {{GIFT}}
+
+    <section class="seccion" id="preguntas" aria-labelledby="t-preguntas">
+      <h2 class="titulo" id="t-preguntas">Preguntas</h2>
+      {{FAQ}}
+    </section>
+
     <section class="seccion seccion--confirmar" id="confirmar" aria-labelledby="t-confirmar">
       <h2 class="titulo" id="t-confirmar">Confirma tu asistencia</h2>
       <p class="plazo">Podéis contestar y cambiar la respuesta hasta el {{DEADLINE}}.</p>
       <div id="rsvp" class="rsvp" aria-live="polite">
         <noscript><p>Para confirmar necesitas tener JavaScript activado en el navegador.</p></noscript>
       </div>
-    </section>
-
-    {{GIFT}}
-
-    <section class="seccion" id="preguntas" aria-labelledby="t-preguntas">
-      <h2 class="titulo" id="t-preguntas">Preguntas</h2>
-      {{FAQ}}
     </section>
   </main>
 
@@ -89,7 +91,6 @@
     <p class="pie__fecha">{{DATE_SHORT}}</p>
   </footer>
 
-  <a class="flotante" href="#confirmar" id="flotante">Confirmar asistencia</a>
   {{MUSIC}}
 
   <script src="/app.js" defer></script>
