@@ -60,6 +60,16 @@
     document.addEventListener('keydown', primerToque, { once: true });
     audio.addEventListener('pause', pintar);
     audio.addEventListener('play', pintar);
+
+    // Si la web pasa a segundo plano (otra app, pantalla bloqueada…), se calla;
+    // al volver, sigue donde iba salvo que la hubieran quitado.
+    let pausadaPorSalir = false;
+    const salir = () => { if (!audio.paused) { pausadaPorSalir = true; audio.pause(); } };
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) salir();
+      else if (pausadaPorSalir && !store.get(OFF)) { pausadaPorSalir = false; tocar(); }
+    });
+    window.addEventListener('pagehide', salir);
   }
 
   // ── Botón flotante ───────────────────────────
