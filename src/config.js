@@ -46,7 +46,7 @@ export const EVENT = {
   capacity: 200,
   maxPerResponse: 6,
 
-  maxSongs: 3,
+  maxSongs: 1,
 
   // Música de fondo: deja el MP3 en public/ y pon aquí su nombre ('' = sin música)
   music: 'musica.mp3',

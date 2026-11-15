@@ -198,7 +198,7 @@ async function saveRsvp(request, env, ctx) {
     }
 
     songs = (Array.isArray(body.songs) ? body.songs : [])
-      .map((s) => ({ title: clean(s?.title, 100), artist: clean(s?.artist, 80) }))
+      .map((s) => ({ title: clean(s?.title, 120), artist: clean(s?.artist, 80) }))
       .filter((s) => s.title)
       .slice(0, EVENT.maxSongs);
   }

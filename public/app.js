@@ -293,15 +293,13 @@
 
     canciones() {
       const { songs, message } = state.data;
-      const rows = Array.from({ length: state.config.maxSongs }, (_, i) => songs[i] || { title: '', artist: '' });
+      const song = songs[0] ? [songs[0].title, songs[0].artist].filter(Boolean).join(' — ') : '';
       return `
         <h3 class="paso__titulo">Una canción para la fiesta</h3>
-        <p class="ayuda">Opcional. Hasta ${state.config.maxSongs}; el DJ las tendrá todas.</p>
-        ${rows.map((s, i) => `
-          <div class="cancion">
-            <input type="text" name="song-${i}" maxlength="100" placeholder="Canción" aria-label="Canción ${i + 1}" value="${esc(s.title)}">
-            <input type="text" name="artist-${i}" maxlength="80" placeholder="Artista" aria-label="Artista de la canción ${i + 1}" value="${esc(s.artist)}">
-          </div>`).join('')}
+        <div class="campo">
+          <label for="song" class="ayuda">Opcional. Se la pasaremos al DJ.</label>
+          <input type="text" id="song" name="song" maxlength="120" placeholder="Por ejemplo: Mediterráneo, de Serrat" value="${esc(song)}">
+        </div>
         <div class="campo" style="margin-top:1.25rem">
           <label for="message">Un mensaje para nosotros <span class="ayuda">Opcional.</span></label>
           <textarea id="message" name="message" maxlength="600">${esc(message)}</textarea>
@@ -333,7 +331,7 @@
     return `<ul class="resumen">
       ${d.guests.map((g) => `<li><b>${g.isChild ? 'Niño o niña' : 'Persona'}</b>${esc(g.name)}${g.allergies ? `. Alergias: ${esc(g.allergies)}` : ''}</li>`).join('')}
       <li><b>Autobús</b>${d.bus.type === 'none' ? 'No lo necesitáis' : `${BUS[d.bus.type]} desde ${esc(s?.name || '')}, ${d.bus.seats} ${d.bus.seats === 1 ? 'plaza' : 'plazas'}`}</li>
-      ${songs.length ? `<li><b>Canciones</b>${songs.map((x) => esc(x.title + (x.artist ? ` (${x.artist})` : ''))).join('<br>')}</li>` : ''}
+      ${songs.length ? `<li><b>Canción</b>${songs.map((x) => esc([x.title, x.artist].filter(Boolean).join(' — '))).join('<br>')}</li>` : ''}
       ${d.message ? `<li><b>Mensaje</b>${esc(d.message)}</li>` : ''}
     </ul>`;
   }
@@ -370,19 +368,25 @@
         <p class="saludo">${d.attending ? `¡Gracias, ${esc(d.contactName)}!` : `Gracias por avisar, ${esc(d.contactName)}`}</p>
         <p>Respuesta enviada. ${d.attending ? 'Nos vemos en Villa Delia.' : 'Os echaremos de menos.'}</p>
       </div>
-      ${summaryList()}
       ${ownLink()}
+      ${summaryList()}
       <button type="button" class="boton boton--secundario boton--ancho" id="cambiar">Cambiar mi respuesta</button>`;
     $('#cambiar').addEventListener('click', () => { state.step = 0; state.done = false; renderStep(); scrollToForm(); });
     bindCopy();
     scrollToForm();
   }
 
+  // Enlace propio para cambiar la respuesta: se lo pueden mandar por WhatsApp
+  // (a sí mismos, con «Tú» o «Mensaje a ti mismo») o copiarlo.
   function ownLink() {
     const url = `${location.origin}/?r=${state.invite.token}`;
+    const pareja = document.title.replace(/ se casan$/, '');
+    const texto = `Mi respuesta para la boda de ${pareja}. Para verla o cambiarla: ${url}`;
     return `<div class="enlace-propio">
-      <p class="ayuda">Vuestro enlace para cambiar la respuesta:</p>
-      <p><a href="${esc(url)}" id="mi-enlace">${esc(url.replace(/^https?:\/\//, ''))}</a></p>
+      <p class="enlace-propio__titulo">Guarda tu enlace</p>
+      <p class="ayuda">Con él puedes ver o cambiar tu respuesta desde cualquier móvil.</p>
+      <a class="boton boton--whatsapp boton--ancho" href="https://wa.me/?text=${encodeURIComponent(texto)}" target="_blank" rel="noopener">Guardar en WhatsApp</a>
+      <p class="enlace-propio__url"><a href="${esc(url)}" id="mi-enlace">${esc(url.replace(/^https?:\/\//, ''))}</a></p>
       <button type="button" class="boton boton--secundario" id="copiar-enlace">Copiar enlace</button>
     </div>`;
   }
@@ -422,7 +426,8 @@
       d.bus.seats = out ? Number(out.textContent) : 0;
     }
     if (name === 'canciones') {
-      d.songs = Array.from({ length: state.config.maxSongs }, (_, i) => ({ title: val(`song-${i}`).trim(), artist: val(`artist-${i}`).trim() }));
+      const song = val('song').trim();
+      d.songs = song ? [{ title: song, artist: '' }] : [];
       d.message = val('message').trim();
     }
     if (name === 'revisar' && d.attending === false) d.message = val('message').trim();

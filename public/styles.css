@@ -305,9 +305,12 @@ input:focus, textarea:focus, select:focus { outline: none; border-color: var(--o
   .titulo { font-size: 4.2rem; }
 }
 
-.enlace-propio { background: var(--verde-agua); padding: 1rem 1.1rem; margin: 0 0 1rem; text-align: center; }
-.enlace-propio p { margin-bottom: .5rem; }
-.enlace-propio a { font-weight: 600; word-break: break-all; }
+.enlace-propio { background: var(--verde-agua); padding: 1.1rem 1.1rem 1.25rem; margin: 0 0 1rem; text-align: center; }
+.enlace-propio__titulo { font: 400 2.2rem/1 var(--caligrafia); color: var(--oro); margin: 0 0 .4rem; }
+.enlace-propio .ayuda { margin-bottom: .9rem; }
+.enlace-propio__url { margin: .9rem 0 .5rem; font-size: .95rem; }
+.enlace-propio__url a { word-break: break-all; }
+.boton--whatsapp { letter-spacing: .07em; padding-inline: 1rem; }
 
 /* Música */
 .musica {
