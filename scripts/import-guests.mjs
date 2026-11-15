@@ -120,7 +120,7 @@ for (const r of rows) {
     );
   }
 
-  const url = `${PUBLIC_URL}/?c=${code}`;
+  const url = `${PUBLIC_URL}/?r=${code}`;
   const text = `¡Hola! Nos casamos y nos encantaría que vinierais. Aquí tenéis toda la información y el formulario para confirmar: ${url}`;
   const waPhone = phone ? (phone.startsWith('+') ? phone.slice(1) : phone.length === 9 ? '34' + phone : phone) : '';
   links.push([label, code, url, `https://wa.me/${waPhone}?text=${encodeURIComponent(text)}`]);

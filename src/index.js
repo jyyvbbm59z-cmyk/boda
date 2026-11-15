@@ -2,6 +2,11 @@ import { EVENT } from './config.js';
 import { renderHome } from './render.js';
 import { notifyResponse, handleTelegram } from './telegram.js';
 
+// Cómo funciona el acceso:
+//  · Hay UN código para todos (el de la invitación), guardado como secreto RSVP_CODE.
+//  · Con él cualquiera puede enviar una respuesta nueva, hasta llenar EVENT.capacity plazas.
+//  · Cada respuesta recibe su propio enlace (?r=XXXX) para cambiarla después.
+
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
@@ -15,12 +20,16 @@ export default {
       if (pathname === '/calendar.ics') return calendar(env);
       if (pathname === '/api/config' && request.method === 'GET') return json(publicConfig());
 
-      if (pathname.startsWith('/api/invite/') && request.method === 'GET') {
-        if (await limited(request, env)) return json({ error: 'Demasiados intentos. Espera un minuto.' }, 429);
-        return getInvite(env, decodeURIComponent(pathname.slice('/api/invite/'.length)));
+      if (pathname === '/api/acceso' && request.method === 'POST') {
+        if (await limited(request, env)) return tooMany();
+        return checkAccess(request, env);
+      }
+      if (pathname.startsWith('/api/respuesta/') && request.method === 'GET') {
+        if (await limited(request, env)) return tooMany();
+        return getResponse(env, decodeURIComponent(pathname.slice('/api/respuesta/'.length)));
       }
       if (pathname === '/api/rsvp' && request.method === 'POST') {
-        if (await limited(request, env)) return json({ error: 'Demasiados intentos. Espera un minuto.' }, 429);
+        if (await limited(request, env)) return tooMany();
         return saveRsvp(request, env, ctx);
       }
       if (pathname === '/telegram/webhook' && request.method === 'POST') {
@@ -45,10 +54,20 @@ export function json(data, status = 200) {
     headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' },
   });
 }
+const tooMany = () => json({ error: 'Demasiados intentos. Espera un minuto y vuelve a probar.' }, 429);
 
-const normalizeCode = (c) => String(c || '').trim().toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 12);
+// "Paula y Carlos 2027" → "PAULAYCARLOS2027"
+const normalize = (c) =>
+  String(c || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 40);
 const clean = (s, max) => String(s ?? '').replace(/\s+/g, ' ').trim().slice(0, max);
 const isOpen = () => Date.now() <= Date.parse(EVENT.rsvpDeadline);
+const validAccess = (env, code) => !!env.RSVP_CODE && normalize(code) === normalize(env.RSVP_CODE);
+
+const TOKEN_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+function newToken() {
+  const bytes = crypto.getRandomValues(new Uint8Array(10));
+  return Array.from(bytes, (b) => TOKEN_CHARS[b % TOKEN_CHARS.length]).join('');
+}
 
 async function limited(request, env) {
   if (!env.RL) return false;
@@ -57,20 +76,39 @@ async function limited(request, env) {
   return !success;
 }
 
+async function seatsTaken(env, exceptGroupId = 0) {
+  const row = await env.DB.prepare(
+    `SELECT COUNT(*) n FROM guests gu JOIN groups g ON g.id = gu.group_id WHERE g.status = 'yes' AND g.id != ?`
+  ).bind(exceptGroupId).first();
+  return row?.n || 0;
+}
+
 function publicConfig() {
   return {
     menus: EVENT.menus,
     stops: EVENT.bus.stops.map(({ id, name, out, back }) => ({ id, name, out, back })),
     maxSongs: EVENT.maxSongs,
+    maxPerResponse: EVENT.maxPerResponse,
     deadline: EVENT.rsvpDeadline,
     open: isOpen(),
   };
 }
 
-// ── invitación ──────────────────────────────────────────────
+// ── acceso con el código de la boda ─────────────────────────
 
-async function loadGroup(env, code) {
-  const group = await env.DB.prepare('SELECT * FROM groups WHERE code = ?').bind(code).first();
+async function checkAccess(request, env) {
+  const { code } = await request.json().catch(() => ({}));
+  if (!env.RSVP_CODE) return json({ error: 'El formulario todavía no está abierto.' }, 503);
+  if (!validAccess(env, code)) return json({ error: 'Ese código no es correcto. Lo tenéis en la invitación.' }, 403);
+  const free = EVENT.capacity - (await seatsTaken(env));
+  if (free <= 0) return json({ error: 'Ya estamos completos. Si crees que es un error, escríbenos.' }, 409);
+  return json({ ok: true, free, open: isOpen() });
+}
+
+// ── respuesta ya enviada (para verla o cambiarla) ───────────
+
+async function loadGroup(env, token) {
+  const group = await env.DB.prepare('SELECT * FROM groups WHERE code = ?').bind(token).first();
   if (!group) return null;
   const [guests, songs] = await Promise.all([
     env.DB.prepare('SELECT name, is_child, menu, allergies FROM guests WHERE group_id = ? ORDER BY id').bind(group.id).all(),
@@ -79,13 +117,13 @@ async function loadGroup(env, code) {
   return { group, guests: guests.results, songs: songs.results };
 }
 
-async function getInvite(env, rawCode) {
-  const code = normalizeCode(rawCode);
-  const data = code && (await loadGroup(env, code));
-  if (!data) return json({ error: 'No encontramos ese código. Revisa el enlace o escríbenos.' }, 404);
+async function getResponse(env, raw) {
+  const token = normalize(raw).slice(0, 12);
+  const data = token && (await loadGroup(env, token));
+  if (!data) return json({ error: 'No encontramos esa respuesta. Revisa el enlace.' }, 404);
   const { group: g, guests, songs } = data;
   return json({
-    code: g.code,
+    token: g.code,
     label: g.label,
     maxSeats: g.max_seats,
     childrenAllowed: !!g.children_allowed,
@@ -100,7 +138,7 @@ async function getInvite(env, rawCode) {
   });
 }
 
-// ── confirmación ────────────────────────────────────────────
+// ── guardar respuesta (nueva o cambio) ──────────────────────
 
 async function saveRsvp(request, env, ctx) {
   let body;
@@ -109,13 +147,20 @@ async function saveRsvp(request, env, ctx) {
   } catch {
     return json({ error: 'No hemos podido leer el formulario.' }, 400);
   }
-
-  const code = normalizeCode(body.code);
-  const data = code && (await loadGroup(env, code));
-  if (!data) return json({ error: 'No encontramos ese código. Revisa el enlace o escríbenos.' }, 404);
   if (!isOpen()) return json({ error: 'El plazo para confirmar ya ha terminado. Escríbenos si necesitas cambiar algo.' }, 403);
 
-  const g = data.group;
+  // ¿Cambio de una respuesta existente o respuesta nueva?
+  let existing = null;
+  if (body.token) {
+    existing = await loadGroup(env, normalize(body.token).slice(0, 12));
+    if (!existing) return json({ error: 'No encontramos esa respuesta. Revisa el enlace.' }, 404);
+  } else if (!validAccess(env, body.access)) {
+    return json({ error: 'Ese código no es correcto. Lo tenéis en la invitación.' }, 403);
+  }
+  const g = existing?.group;
+  const maxSeats = g?.max_seats || EVENT.maxPerResponse;
+  const childrenAllowed = g ? !!g.children_allowed : true;
+
   const attending = body.attending === true;
   const contactName = clean(body.contactName, 80);
   const phone = clean(body.phone, 20).replace(/[^\d+ ]/g, '');
@@ -130,17 +175,22 @@ async function saveRsvp(request, env, ctx) {
     const menuIds = new Map(EVENT.menus.map((m) => [m.id, m]));
     guests = (Array.isArray(body.guests) ? body.guests : []).map((x) => ({
       name: clean(x?.name, 60),
-      isChild: g.children_allowed ? x?.isChild === true : false,
+      isChild: childrenAllowed ? x?.isChild === true : false,
       menu: clean(x?.menu, 30),
       allergies: clean(x?.allergies, 200),
     }));
     if (guests.length < 1) return json({ error: 'Añade al menos una persona.' }, 400);
-    if (guests.length > g.max_seats) return json({ error: `Vuestra invitación es para ${g.max_seats} personas como máximo.` }, 400);
+    if (guests.length > maxSeats) return json({ error: `Como máximo ${maxSeats} personas por respuesta. Si sois más, enviad otra.` }, 400);
     for (const p of guests) {
       if (!p.name) return json({ error: 'Falta el nombre de alguna persona.' }, 400);
       const menu = menuIds.get(p.menu);
       if (!menu) return json({ error: `Elige el menú de ${p.name}.` }, 400);
       if (menu.kids && !p.isChild) return json({ error: `El menú ${menu.label.toLowerCase()} es solo para niños (${p.name}).` }, 400);
+    }
+
+    const free = EVENT.capacity - (await seatsTaken(env, g?.id || 0));
+    if (guests.length > free) {
+      return json({ error: free > 0 ? `Solo quedan ${free} plazas. Escríbenos y lo vemos.` : 'Ya estamos completos. Escríbenos y lo vemos.' }, 409);
     }
 
     const b = body.bus || {};
@@ -159,27 +209,39 @@ async function saveRsvp(request, env, ctx) {
   }
 
   const now = new Date().toISOString();
-  const wasAnswered = g.status !== 'pending';
+  let groupId = g?.id;
+  let token = g?.code;
+
+  if (!g) {
+    // respuesta nueva: se crea su grupo con un enlace propio
+    token = newToken();
+    const row = await env.DB.prepare(
+      `INSERT INTO groups (code, label, max_seats, children_allowed, status, contact_name, phone, responded_at, updated_at)
+       VALUES (?, ?, ?, 1, 'pending', ?, ?, ?, ?) RETURNING id`
+    ).bind(token, contactName, maxSeats, contactName, phone || null, now, now).first();
+    groupId = row.id;
+  }
+
   const stmts = [
     env.DB.prepare(
-      `UPDATE groups SET status = ?, contact_name = ?, phone = ?, bus_type = ?, bus_stop_id = ?, bus_seats = ?,
-       message = ?, responded_at = COALESCE(responded_at, ?), updated_at = ? WHERE id = ?`
-    ).bind(attending ? 'yes' : 'no', contactName, phone || null, bus.type, bus.stop, bus.seats, message || null, now, now, g.id),
-    env.DB.prepare('DELETE FROM songs WHERE group_id = ?').bind(g.id),
-    ...songs.map((s) => env.DB.prepare('INSERT INTO songs (group_id, title, artist, created_at) VALUES (?, ?, ?, ?)').bind(g.id, s.title, s.artist || null, now)),
+      `UPDATE groups SET status = ?, label = CASE WHEN ? THEN ? ELSE label END, contact_name = ?, phone = ?, bus_type = ?, bus_stop_id = ?,
+       bus_seats = ?, message = ?, responded_at = COALESCE(responded_at, ?), updated_at = ? WHERE id = ?`
+    ).bind(attending ? 'yes' : 'no', g ? 0 : 1, contactName, contactName, phone || null, bus.type, bus.stop, bus.seats, message || null, now, now, groupId),
+    env.DB.prepare('DELETE FROM songs WHERE group_id = ?').bind(groupId),
+    ...songs.map((s) => env.DB.prepare('INSERT INTO songs (group_id, title, artist, created_at) VALUES (?, ?, ?, ?)').bind(groupId, s.title, s.artist || null, now)),
     env.DB.prepare('INSERT INTO response_log (group_id, payload, created_at) VALUES (?, ?, ?)').bind(
-      g.id,
+      groupId,
       JSON.stringify({ attending, contactName, phone, guests, bus, songs, message }),
       now
     ),
   ];
-  // Si no viene, conservamos los nombres previstos por si cambia de idea.
+  // Si no viene, conservamos los nombres por si cambia de idea.
   if (attending) {
-    stmts.push(env.DB.prepare('DELETE FROM guests WHERE group_id = ?').bind(g.id));
+    stmts.push(env.DB.prepare('DELETE FROM guests WHERE group_id = ?').bind(groupId));
     for (const p of guests) {
       stmts.push(
         env.DB.prepare('INSERT INTO guests (group_id, name, is_child, menu, allergies) VALUES (?, ?, ?, ?, ?)').bind(
-          g.id, p.name, p.isChild ? 1 : 0, p.menu, p.allergies || null
+          groupId, p.name, p.isChild ? 1 : 0, p.menu, p.allergies || null
         )
       );
     }
@@ -187,9 +249,11 @@ async function saveRsvp(request, env, ctx) {
   await env.DB.batch(stmts);
 
   ctx.waitUntil(
-    notifyResponse(env, { label: g.label, attending, edited: wasAnswered, guests, bus, songs, message }).catch((e) => console.error('telegram', e))
+    notifyResponse(env, { label: contactName, attending, edited: !!g && g.status !== 'pending', guests, bus, songs, message }).catch((e) =>
+      console.error('telegram', e)
+    )
   );
-  return json({ ok: true });
+  return json({ ok: true, token });
 }
 
 // ── calendario ──────────────────────────────────────────────

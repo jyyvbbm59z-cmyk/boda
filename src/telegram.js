@@ -60,9 +60,9 @@ async function summary(env) {
   const st = Object.fromEntries(status.results.map((r) => [r.status, r.n]));
   const lines = [
     '<b>Resumen de la boda</b>',
-    `✅ Vienen: ${pl(st.yes || 0, 'grupo', 'grupos')} · ${pl(people?.adults || 0, 'adulto', 'adultos')}, ${pl(people?.kids || 0, 'niño', 'niños')}`,
-    `❌ No vienen: ${pl(st.no || 0, 'grupo', 'grupos')}`,
-    `⏳ Sin contestar: ${pl(st.pending || 0, 'grupo', 'grupos')}`,
+    `✅ Vienen: ${pl(st.yes || 0, 'respuesta', 'respuestas')} · ${pl(people?.adults || 0, 'adulto', 'adultos')}, ${pl(people?.kids || 0, 'niño', 'niños')}`,
+    `❌ No vienen: ${pl(st.no || 0, 'respuesta', 'respuestas')}`,
+    `🪑 Plazas: ${(people?.adults || 0) + (people?.kids || 0)} de ${EVENT.capacity}`,
     '',
     '<b>Menús</b>',
     ...(menus.results.length ? menus.results.map((m) => `· ${menuLabel(m.menu)}: ${m.n}`) : ['· Todavía nada']),
@@ -74,13 +74,6 @@ async function summary(env) {
     `🎵 Canciones propuestas: ${songs?.n || 0} (/canciones)`,
   ];
   return lines.join('\n');
-}
-
-async function pending(env) {
-  const { results } = await env.DB.prepare(`SELECT label, code FROM groups WHERE status = 'pending' ORDER BY label`).all();
-  if (!results.length) return '🎉 Todo el mundo ha contestado.';
-  const base = env.PUBLIC_URL || '';
-  return [`<b>Sin contestar (${results.length})</b>`, ...results.map((r) => `· ${esc(r.label)} — ${base}/?c=${r.code}`)].join('\n');
 }
 
 async function songList(env) {
@@ -102,8 +95,7 @@ async function allergyList(env) {
 
 const HELP = [
   '<b>Comandos</b>',
-  '/resumen — cuántos vienen, menús y autobús',
-  '/pendientes — quién no ha contestado, con su enlace',
+  '/resumen — cuántos vienen, plazas, menús y autobús',
   '/canciones — lista para el DJ',
   '/alergias — lista para el catering',
 ].join('\n');
@@ -124,7 +116,7 @@ export async function handleTelegram(request, env) {
   }
 
   const cmd = msg.text.trim().split(/[\s@]/)[0].toLowerCase();
-  const handlers = { '/resumen': summary, '/pendientes': pending, '/canciones': songList, '/alergias': allergyList };
+  const handlers = { '/resumen': summary, '/canciones': songList, '/alergias': allergyList };
   const text = handlers[cmd] ? await handlers[cmd](env) : HELP;
   await send(env, chatId, text);
   return new Response('ok');

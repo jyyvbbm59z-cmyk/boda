@@ -9,6 +9,13 @@ const longDate = (iso) =>
 const shortDate = (iso) =>
   new Intl.DateTimeFormat('es-ES', { timeZone: TZ, day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(iso)).replace(/\//g, '.');
 const dayMonth = (iso) => new Intl.DateTimeFormat('es-ES', { timeZone: TZ, day: 'numeric', month: 'long' }).format(new Date(iso));
+const cardDate = (iso) => {
+  const p = Object.fromEntries(
+    new Intl.DateTimeFormat('es-ES', { timeZone: TZ, day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+      .formatToParts(new Date(iso)).map((x) => [x.type, x.value])
+  );
+  return `${p.day} de ${p.month} ${p.year} — ${p.hour}:${p.minute}h.`;
+};
 const time = (iso) => new Intl.DateTimeFormat('es-ES', { timeZone: TZ, hour: '2-digit', minute: '2-digit' }).format(new Date(iso));
 
 function blocks() {
@@ -60,6 +67,7 @@ export async function renderHome(asset, env, url) {
     DATE_ISO: esc(EVENT.date),
     DATE_LONG: esc(longDate(EVENT.date).replace(/^./, (c) => c.toUpperCase())),
     DATE_SHORT: esc(shortDate(EVENT.date)),
+    DATE_CARD: esc(cardDate(EVENT.date)),
     TIME: esc(time(EVENT.date)),
     DEADLINE: esc(dayMonth(EVENT.rsvpDeadline)),
     VENUE: esc(EVENT.venue.name),

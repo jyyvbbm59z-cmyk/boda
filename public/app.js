@@ -4,12 +4,13 @@
   const $ = (sel, el = document) => el.querySelector(sel);
   const $$ = (sel, el = document) => [...el.querySelectorAll(sel)];
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
-  const KEY = 'boda-codigo';
   const store = {
-    get: () => { try { return localStorage.getItem(KEY); } catch { return null; } },
-    set: (v) => { try { localStorage.setItem(KEY, v); } catch {} },
-    clear: () => { try { localStorage.removeItem(KEY); } catch {} },
+    get: (k) => { try { return localStorage.getItem(k); } catch { return null; } },
+    set: (k, v) => { try { localStorage.setItem(k, v); } catch {} },
+    clear: (k) => { try { localStorage.removeItem(k); } catch {} },
   };
+  const ACCESO = 'boda-acceso';   // el código de la invitación
+  const TOKEN = 'boda-respuesta'; // el enlace propio de la respuesta ya enviada
 
   // ── Cuenta atrás ─────────────────────────────
   const cuenta = $('#cuenta');
@@ -46,7 +47,7 @@
 
   // ── Formulario de confirmación ───────────────
   const root = $('#rsvp');
-  const state = { config: null, invite: null, step: 0, data: null, done: false, sending: false, error: '' };
+  const state = { config: null, invite: null, access: '', step: 0, data: null, done: false, sending: false, error: '' };
 
   const BUS = { none: 'No, gracias', out: 'Solo ida', back: 'Solo vuelta', both: 'Ida y vuelta' };
   const menuLabel = (id) => state.config.menus.find((m) => m.id === id)?.label || '';
@@ -68,25 +69,49 @@
       root.innerHTML = `<p class="aviso-error">${esc(e.message)}</p>`;
       return;
     }
-    const fromUrl = new URLSearchParams(location.search).get('c');
-    const code = fromUrl || store.get();
-    if (code) await openInvite(code, !fromUrl);
-    else renderCode();
+    const q = new URLSearchParams(location.search);
+    const token = q.get('r') || store.get(TOKEN);
+    if (token) return openResponse(token, !q.get('r'));
+    const code = q.get('c') || store.get(ACCESO);
+    if (code) return enter(code, true);
+    renderCode();
   }
 
-  async function openInvite(code, silent) {
-    root.innerHTML = '<p class="cargando">Abriendo vuestra invitación…</p>';
+  // Abre una respuesta ya enviada (para verla o cambiarla)
+  async function openResponse(token, silent) {
+    root.innerHTML = '<p class="cargando">Abriendo vuestra respuesta…</p>';
     try {
-      const inv = await api('/api/invite/' + encodeURIComponent(code));
-      store.set(inv.code);
+      const inv = await api('/api/respuesta/' + encodeURIComponent(token));
+      store.set(TOKEN, inv.token);
       state.invite = inv;
       state.data = fromInvite(inv);
       state.step = 0;
       if (inv.status !== 'pending') renderAnswered();
       else renderStep();
     } catch (e) {
-      if (silent) store.clear();
-      renderCode(silent ? '' : e.message, code);
+      if (silent) { store.clear(TOKEN); return init(); }
+      renderCode(e.message);
+    }
+  }
+
+  // Entra con el código de la invitación y empieza una respuesta nueva
+  async function enter(code, silent) {
+    root.innerHTML = '<p class="cargando">Un momento…</p>';
+    try {
+      await api('/api/acceso', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ code }) });
+      store.set(ACCESO, code);
+      state.access = code;
+      state.invite = { token: '', label: '', maxSeats: state.config.maxPerResponse, childrenAllowed: true, status: 'pending', open: state.config.open };
+      state.data = {
+        attending: null, contactName: '', phone: '',
+        guests: [{ name: '', isChild: false, menu: '', allergies: '' }],
+        bus: { type: 'none', stop: '', seats: 0 }, songs: [], message: '',
+      };
+      state.step = 0;
+      renderStep();
+    } catch (e) {
+      store.clear(ACCESO);
+      renderCode(silent ? '' : e.message, silent ? '' : code);
     }
   }
 
@@ -111,23 +136,23 @@
     root.innerHTML = `
       <form id="f-codigo" novalidate>
         <div class="campo">
-          <label for="codigo">Código de tu invitación
-            <span class="ayuda">Está al final del enlace que os mandamos por WhatsApp.</span></label>
+          <label for="codigo">Código de la invitación
+            <span class="ayuda">Lo encontraréis en la invitación.</span></label>
           <input id="codigo" name="codigo" type="text" autocomplete="off" autocapitalize="characters" spellcheck="false" value="${esc(value)}" required>
         </div>
-        <button class="boton boton--ancho" type="submit">Abrir mi invitación</button>
+        <button class="boton boton--ancho" type="submit">Entrar</button>
         ${error ? `<p class="aviso-error" role="alert">${esc(error)}</p>` : ''}
       </form>`;
     $('#f-codigo').addEventListener('submit', (e) => {
       e.preventDefault();
       const v = $('#codigo').value.trim();
       if (!v) return renderCode('Escribe el código para continuar.');
-      openInvite(v, false);
+      enter(v, false);
     });
   }
 
   function greeting() {
-    return `<p class="saludo">Hola, ${esc(state.invite.label)}</p>`;
+    return `<p class="saludo">${state.invite.label ? `Hola, ${esc(state.invite.label)}` : '¡Hola!'}</p>`;
   }
 
   function progress() {
@@ -209,7 +234,7 @@
         </div>`).join('');
       return `
         <h3 class="paso__titulo">¿Quiénes venís?</h3>
-        <p class="ayuda">Vuestra invitación es para ${inv.maxSeats} ${inv.maxSeats === 1 ? 'persona' : 'personas'}.</p>
+        <p class="ayuda">Hasta ${inv.maxSeats} personas en esta respuesta. Si sois más, enviad otra.</p>
         ${people}
         ${guests.length < inv.maxSeats ? '<button type="button" class="boton boton--secundario boton--ancho" data-accion="añadir">Añadir persona</button>' : ''}`;
     },
@@ -298,9 +323,17 @@
       ${inv.open
         ? '<button type="button" class="boton boton--secundario boton--ancho" id="cambiar">Cambiar mi respuesta</button>'
         : '<p class="ayuda">El plazo para cambiar la respuesta ya ha terminado. Si necesitáis algo, escribidnos.</p>'}
-      <p class="ayuda" style="margin-top:1rem"><a href="#" id="otro">¿No es vuestra invitación? Usar otro código</a></p>`;
+      ${ownLink()}
+      <p class="ayuda" style="margin-top:1rem"><a href="#" id="otro">Enviar otra respuesta (de otra familia)</a></p>`;
     $('#cambiar')?.addEventListener('click', () => { state.step = 0; state.error = ''; renderStep(); scrollToForm(); });
-    $('#otro').addEventListener('click', (e) => { e.preventDefault(); store.clear(); history.replaceState(null, '', location.pathname + '#confirmar'); renderCode(); });
+    bindCopy();
+    $('#otro').addEventListener('click', (e) => {
+      e.preventDefault();
+      store.clear(TOKEN);
+      history.replaceState(null, '', location.pathname + '#confirmar');
+      const code = store.get(ACCESO);
+      code ? enter(code, true) : renderCode();
+    });
   }
 
   function renderThanks() {
@@ -309,14 +342,29 @@
     window.__updateFlotante?.();
     root.innerHTML = `
       <div class="gracias">
-        <div class="gracias__flor" aria-hidden="true"></div>
         <p class="saludo">${d.attending ? `¡Gracias, ${esc(d.contactName)}!` : `Gracias por avisar, ${esc(d.contactName)}`}</p>
         <p>Respuesta enviada. ${d.attending ? 'Nos vemos en Villa Delia.' : 'Os echaremos de menos.'}</p>
       </div>
       ${summaryList()}
+      ${ownLink()}
       <button type="button" class="boton boton--secundario boton--ancho" id="cambiar">Cambiar mi respuesta</button>`;
     $('#cambiar').addEventListener('click', () => { state.step = 0; state.done = false; renderStep(); scrollToForm(); });
+    bindCopy();
     scrollToForm();
+  }
+
+  function ownLink() {
+    const url = `${location.origin}/?r=${state.invite.token}`;
+    return `<div class="enlace-propio">
+      <p class="ayuda">Vuestro enlace para cambiar la respuesta:</p>
+      <p><a href="${esc(url)}" id="mi-enlace">${esc(url.replace(/^https?:\/\//, ''))}</a></p>
+      <button type="button" class="boton boton--secundario" id="copiar-enlace">Copiar enlace</button>
+    </div>`;
+  }
+  function bindCopy() {
+    $('#copiar-enlace')?.addEventListener('click', async (e) => {
+      try { await navigator.clipboard.writeText($('#mi-enlace').href); e.target.textContent = 'Copiado'; } catch {}
+    });
   }
 
   const scrollToForm = () => confirmar.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
@@ -395,6 +443,7 @@
     const err = validate();
     if (err) return showError(...err);
     if (steps()[state.step] === 'revisar') return submit();
+    if (steps()[state.step] === 'asistencia' && !state.data.guests[0].name) state.data.guests[0].name = state.data.contactName;
     if (steps()[state.step] === 'personas' && !state.data.bus.seats) state.data.bus.seats = state.data.guests.length;
     state.step += 1;
     renderStep();
@@ -431,11 +480,12 @@
     state.sending = true;
     renderStep();
     try {
-      await api('/api/rsvp', {
+      const res = await api('/api/rsvp', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
         body: JSON.stringify({
-          code: state.invite.code,
+          token: state.invite.token || undefined,
+          access: state.invite.token ? undefined : state.access,
           attending: d.attending,
           contactName: d.contactName,
           phone: d.phone,
@@ -446,7 +496,10 @@
         }),
       });
       state.sending = false;
+      state.invite.token = res.token;
+      state.invite.label = state.invite.label || d.contactName;
       state.invite.status = d.attending ? 'yes' : 'no';
+      store.set(TOKEN, res.token);
       renderThanks();
     } catch (err) {
       state.sending = false;

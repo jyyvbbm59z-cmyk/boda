@@ -7,29 +7,28 @@
 export const EVENT = {
   couple: ['Paula', 'Carlos'],
   // Fecha y hora de la ceremonia (hora de Madrid)
-  date: '2027-05-22T12:30:00+02:00', // PENDIENTE: hora de la ceremonia
+  date: '2027-05-22T13:00:00+02:00',
   // Hasta cuándo se puede confirmar o cambiar la respuesta
   rsvpDeadline: '2027-04-22T23:59:00+02:00', // PENDIENTE: un mes antes, a confirmar
 
   venue: {
     name: 'Villa Delia',
-    town: 'Picanya, Valencia',
-    address: 'Camí del Hort, s/n, 46210 Picanya, Valencia',
+    town: 'Picaña',
+    address: 'Camí dels Horts, 46210, Picaña',
     mapsUrl: 'https://www.google.com/maps/search/?api=1&query=Villa+Delia+Picanya',
     wazeUrl: 'https://waze.com/ul?q=Villa%20Delia%20Picanya&navigate=yes',
     parking: 'La finca tiene aparcamiento propio.',
   },
 
-  intro:
-    'Nos casamos. Queremos celebrarlo en un jardín de Picanya con la gente que más queremos, y eso os incluye a vosotros.',
+  intro: 'Nos hace mucha ilusión compartir este día tan especial contigo. ¡No\u00a0faltes!',
 
   // Horario del día (PENDIENTE: confirmar con la finca)
   schedule: [
-    { time: '12:00', title: 'Llegada', text: 'Os esperamos en la entrada de la finca.' },
-    { time: '12:30', title: 'Ceremonia civil', text: 'En el jardín. Cortita, prometido.' },
-    { time: '13:30', title: 'Cóctel', text: 'Junto a la pérgola.' },
-    { time: '15:00', title: 'Comida', text: 'Con el menú que elijáis aquí abajo.' },
-    { time: '18:00', title: 'Fiesta', text: 'Barra libre y las canciones que propongáis.' },
+    { time: '12:30', title: 'Llegada', text: 'Os esperamos en la entrada de la finca.' },
+    { time: '13:00', title: 'Ceremonia civil', text: 'En el jardín. Cortita, prometido.' },
+    { time: '14:00', title: 'Cóctel', text: 'Junto a la pérgola.' },
+    { time: '15:30', title: 'Comida', text: 'Con el menú que elijáis aquí abajo.' },
+    { time: '18:30', title: 'Fiesta', text: 'Barra libre y las canciones que propongáis.' },
     { time: '23:00', title: 'Última vuelta', text: 'Sale el último autobús.' },
   ],
 
@@ -50,6 +49,10 @@ export const EVENT = {
     ],
   },
 
+  // Plazas totales y personas como máximo en cada respuesta
+  capacity: 200,
+  maxPerResponse: 6,
+
   maxSongs: 3,
 
   // Regalo. Deja iban vacío ('') para ocultar la sección.
@@ -60,9 +63,9 @@ export const EVENT = {
 
   faq: [
     { q: '¿Cómo hay que ir vestido?', a: 'Formal pero cómodo. La ceremonia es en jardín: mejor tacón ancho que de aguja.' },
-    { q: '¿Pueden venir los niños?', a: 'Si vuestra invitación los incluye, aparecerán en el formulario con su menú infantil.' },
-    { q: '¿Puedo llevar acompañante?', a: 'El formulario os deja añadir tantas personas como plazas tiene vuestra invitación. Si necesitáis alguna más, escribidnos.' },
-    { q: '¿Y si cambio de idea?', a: 'Volved a entrar con el mismo enlace y cambiad lo que queráis hasta la fecha límite.' },
+    { q: '¿Pueden venir los niños?', a: 'Claro. Al confirmar, marcad quién es niño o niña y elegid su menú infantil.' },
+    { q: '¿Dónde está el código para confirmar?', a: 'En la invitación. Si no lo encontráis, preguntadnos.' },
+    { q: '¿Y si cambio de idea?', a: 'Al confirmar os damos un enlace propio. Desde ese enlace (o desde este mismo móvil) podéis cambiar la respuesta hasta la fecha límite.' },
     { q: '¿A quién llamo si tengo dudas?', a: 'A cualquiera de los dos. Paula: 600 000 000. Carlos: 600 000 000.' }, // PENDIENTE
   ],
 };

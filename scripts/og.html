@@ -1,19 +1,21 @@
 <!doctype html>
 <!-- Plantilla de la imagen que sale al compartir el enlace (1200×630).
-     Regenerar: python3 scripts/og.py "Paula" "Carlos" "22 de mayo de 2027" -->
+     Regenerar: python3 scripts/og.py "Paula" "Carlos" "22 de mayo 2027 — 13:00h." -->
 <html><head><meta charset="utf-8"><style>
-@font-face { font-family: WB; src: url(../public/fonts/water-brush.woff2); }
-@font-face { font-family: Hanken; src: url(../public/fonts/hanken-400.woff2); }
+@font-face { font-family: Madi; src: url(../public/fonts/ms-madi.woff2); }
+@font-face { font-family: Jos; src: url(../public/fonts/josefin-400.woff2); }
 html, body { margin: 0; }
-body { width: 1200px; height: 630px; background: #fffefc; position: relative; overflow: hidden; color: #2d2a32; }
-.m { position: absolute; width: 900px; left: 150px; top: 250px; }
-.s { position: absolute; width: 560px; left: 330px; top: 410px; }
-.r { position: absolute; width: 170px; right: 70px; top: 330px; transform: rotate(14deg); }
-h1 { position: absolute; inset: 0 0 auto 0; top: 120px; text-align: center; margin: 0; font: 400 200px/1 WB; white-space: nowrap; transform: rotate(-3deg); }
-h1 span { font-size: 90px; margin: 0 26px; }
-p { position: absolute; left: 0; right: 0; bottom: 56px; text-align: center; margin: 0; font: 400 34px Hanken; letter-spacing: .02em; }
+body { width: 1200px; height: 630px; background: #fbfaf7; position: relative; overflow: hidden; color: #4e685c; font-family: Jos; text-align: center; }
+img { position: absolute; }
+.a { left: 0; top: 0; height: 380px; } .f { left: 0; bottom: 0; width: 360px; } .d { right: 0; bottom: 0; height: 520px; }
+.c { position: absolute; left: 0; right: 0; top: 60px; }
+.n { font: 400 66px/1 Jos; letter-spacing: 4px; text-transform: uppercase; font-size: 30px; margin: 0 0 6px; }
+h1 { font: 400 150px/.8 Madi; color: #ad8540; margin: 0 auto; width: 640px; display: grid; }
+h1 span:nth-child(1) { justify-self: start; } h1 span:nth-child(2) { font-size: 90px; line-height: .6; margin-left: 210px; justify-self: start; } h1 span:nth-child(3) { justify-self: end; }
+.f2 { font-size: 40px; letter-spacing: 2px; text-transform: uppercase; margin: 34px 0 6px; }
+.l { font-size: 24px; letter-spacing: 2px; text-transform: uppercase; margin: 0; }
 </style></head><body>
-<img class="m" src="../public/img/pincelada-melocoton.svg"><img class="s" src="../public/img/pincelada-salvia.svg"><img class="r" src="../public/img/azahar.svg">
-<h1 id="n">Paula<span>y</span>Carlos</h1>
-<p id="f">22 de mayo de 2027 · Villa Delia, Picanya</p>
+<img class="a" src="../public/img/hojas-arriba.png"><img class="f" src="../public/img/flores-abajo.png"><img class="d" src="../public/img/hojas-derecha.png">
+<div class="c"><p class="n">¡Nos casamos!</p><h1 id="n"><span>Paula</span><span>y</span><span>Carlos</span></h1>
+<p class="f2" id="f">22 de mayo 2027 — 13:00h.</p><p class="l">Villa Delia, Picaña</p></div>
 </body></html>

@@ -1,6 +1,6 @@
 # Web de la boda
 
-Web para el móvil que anuncia la boda en Villa Delia y recoge las confirmaciones: quién viene, el menú de cada uno, alergias, autobús y canciones. Cada respuesta llega al momento por Telegram.
+Web para el móvil que anuncia la boda de Paula y Carlos en Villa Delia y recoge las confirmaciones: quién viene, el menú de cada uno, alergias, autobús y canciones. Cada respuesta llega al momento por Telegram.
 
 Funciona en Cloudflare Workers con D1, dentro del plan gratuito.
 
@@ -45,26 +45,22 @@ npm run deploy
    ```
 4. Escríbele al bot desde tu Telegram: te contestará con tu chat id. Ponlo en `TELEGRAM_CHAT_ID` (los dos, separados por comas, o el id de un grupo donde estéis los dos con el bot).
 
-Comandos: `/resumen`, `/pendientes` (con el enlace de cada uno para reenviárselo), `/canciones`, `/alergias`.
+Comandos: `/resumen` (plazas ocupadas, menús, autobús), `/canciones`, `/alergias`.
 
-### Invitados
+### Código de la boda
 
-Haz un `invitados.csv` (se puede exportar desde Excel con `;`) siguiendo `scripts/ejemplo.csv`:
-
-```
-grupo;plazas;nombres;telefono;codigo
-Familia García;4;Pepe García/Marisa López/Lucía*/Pablo*;600111222;
-```
-
-- `nombres` separados por `/`; los niños con `*` al final (así su formulario ofrece menú infantil).
-- `codigo` vacío: el script lo crea y lo guarda en el CSV.
+Hay **un único código para todos**, el que ponéis en la invitación. Se guarda como secreto:
 
 ```bash
-npm run invitados -- invitados.csv
-npx wrangler d1 execute boda --remote --file invitados.sql
+npx wrangler secret put RSVP_CODE      # p. ej. "Paula y Carlos" (da igual mayúsculas, tildes o espacios)
 ```
 
-Sale `invitaciones.csv` con el enlace de cada grupo y un enlace de WhatsApp con el mensaje ya escrito. Si añades gente, edita el CSV y repite: los códigos se mantienen y no se duplica nada. Estos ficheros tienen datos personales y no se suben al repo (`.gitignore`).
+- Quien lo tenga puede confirmar. Entra con `https://…/?c=CODIGO` o escribiéndolo en la web.
+- Hay un máximo de **200 plazas** en total y **6 personas por respuesta** (`capacity` y `maxPerResponse` en `src/config.js`).
+- Al confirmar, cada uno recibe **su propio enlace** (`?r=XXXX`) para cambiar la respuesta. El móvil lo recuerda solo.
+- Sin `RSVP_CODE` puesto, el formulario está cerrado.
+
+*Opcional:* si queréis apuntar a alguien a mano con sus nombres ya puestos, `npm run invitados -- invitados.csv` (ver `scripts/ejemplo.csv`) crea respuestas vacías con su enlace propio.
 
 ## Cambiar textos
 
@@ -72,16 +68,15 @@ Edita `src/config.js` y `npm run deploy`. Si cambias nombres o fecha, regenera l
 
 ```bash
 pip install playwright && playwright install chromium
-python3 scripts/og.py "Carlos" "Nombre" "24.04.2027"
+python3 scripts/og.py "Paula" "Carlos" "22 de mayo 2027 — 13:00h."
 ```
 
 ## Probar en local
 
 ```bash
 npm run db:migrate:local
-cp scripts/ejemplo.csv invitados.csv && npm run invitados -- invitados.csv
-npx wrangler d1 execute boda --local --file invitados.sql
-npm run dev        # http://localhost:8787/?c=<código de invitaciones.csv>
+echo 'RSVP_CODE=prueba' > .dev.vars
+npm run dev        # http://localhost:8787/?c=prueba
 ```
 
 Sin token de Telegram, los avisos se escriben en la consola.
