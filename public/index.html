@@ -6,7 +6,7 @@
   <title>{{TITLE}}</title>
   <meta name="description" content="{{DESCRIPTION}}">
   <meta name="robots" content="noindex, nofollow">
-  <meta name="theme-color" content="#1E3F8F">
+  <meta name="theme-color" content="#FFFEFC">
 
   <meta property="og:type" content="website">
   <meta property="og:title" content="{{TITLE}}">
@@ -18,26 +18,24 @@
   <meta name="twitter:card" content="summary_large_image">
 
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <link rel="preload" href="/fonts/gloock-400.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/water-brush.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
   <header class="portada">
-    <div class="retablo">
-      <div class="retablo__piezas" aria-hidden="true">{{TILES}}</div>
-      <div class="retablo__placa">
-        <h1 class="nombres">
-          <span class="nombres__uno">{{A}}</span>
-          <span class="nombres__y">y</span>
-          <span class="nombres__dos">{{B}}</span>
-        </h1>
-        <p class="placa__fecha"><time datetime="{{DATE_ISO}}">{{DATE_SHORT}}</time></p>
-        <p class="placa__lugar">{{VENUE}}, Picanya</p>
-      </div>
+    <div class="lienzo">
+      <img class="pincelada pincelada--melocoton" src="/img/pincelada-melocoton.svg" alt="" aria-hidden="true">
+      <img class="pincelada pincelada--salvia" src="/img/pincelada-salvia.svg" alt="" aria-hidden="true">
+      <img class="rama" src="/img/azahar.svg" alt="" aria-hidden="true">
+      <h1 class="nombres">
+        <span class="nombres__uno">{{A}}</span>
+        <span class="nombres__y">y</span>
+        <span class="nombres__dos">{{B}}</span>
+      </h1>
     </div>
 
     <div class="portada__pie">
-      <p class="cuando">Nos casamos el {{DATE_LONG}}, a las {{TIME}}.</p>
+      <p class="cuando"><time datetime="{{DATE_ISO}}">{{DATE_LONG}}</time><br>{{VENUE}}, Picanya</p>
       <p class="cuenta" id="cuenta" data-fecha="{{DATE_ISO}}"></p>
       <a class="boton" href="#confirmar">Confirmar asistencia</a>
     </div>
@@ -70,7 +68,7 @@
       <ul class="paradas">{{STOPS}}</ul>
     </section>
 
-    <div class="cenefa" aria-hidden="true"></div>
+    <img class="separador" src="/img/pincelada-salvia.svg" alt="" aria-hidden="true">
 
     <section class="seccion seccion--confirmar" id="confirmar" aria-labelledby="t-confirmar">
       <h2 class="titulo" id="t-confirmar">Confirma tu asistencia</h2>
@@ -89,7 +87,8 @@
   </main>
 
   <footer class="pie">
-    <div class="cenefa" aria-hidden="true"></div>
+    <img class="separador" src="/img/pincelada-salvia.svg" alt="" aria-hidden="true">
+    <img class="pie__rama" src="/img/azahar.svg" alt="" aria-hidden="true">
     <p class="pie__nombres">{{A}} y {{B}}</p>
     <p class="pie__fecha">{{DATE_SHORT}}</p>
   </footer>

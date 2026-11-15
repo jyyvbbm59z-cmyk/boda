@@ -5,11 +5,11 @@
 // ─────────────────────────────────────────────────────────────
 
 export const EVENT = {
-  couple: ['Carlos', 'Nombre'], // PENDIENTE: nombre de la novia
+  couple: ['Paula', 'Carlos'],
   // Fecha y hora de la ceremonia (hora de Madrid)
-  date: '2027-04-24T12:30:00+02:00', // PENDIENTE
+  date: '2027-05-22T12:30:00+02:00', // PENDIENTE: hora de la ceremonia
   // Hasta cuándo se puede confirmar o cambiar la respuesta
-  rsvpDeadline: '2027-03-24T23:59:00+01:00', // PENDIENTE
+  rsvpDeadline: '2027-04-22T23:59:00+02:00', // PENDIENTE: un mes antes, a confirmar
 
   venue: {
     name: 'Villa Delia',
@@ -63,6 +63,6 @@ export const EVENT = {
     { q: '¿Pueden venir los niños?', a: 'Si vuestra invitación los incluye, aparecerán en el formulario con su menú infantil.' },
     { q: '¿Puedo llevar acompañante?', a: 'El formulario os deja añadir tantas personas como plazas tiene vuestra invitación. Si necesitáis alguna más, escribidnos.' },
     { q: '¿Y si cambio de idea?', a: 'Volved a entrar con el mismo enlace y cambiad lo que queráis hasta la fecha límite.' },
-    { q: '¿A quién llamo si tengo dudas?', a: 'A cualquiera de los dos. Carlos: 600 000 000.' }, // PENDIENTE
+    { q: '¿A quién llamo si tengo dudas?', a: 'A cualquiera de los dos. Paula: 600 000 000. Carlos: 600 000 000.' }, // PENDIENTE
   ],
 };

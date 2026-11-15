@@ -44,30 +44,9 @@ function blocks() {
       </section>`
     : '';
 
-  return { schedule, stops, faq, gift, tiles: tiles() };
+  return { schedule, stops, faq, gift };
 }
 
-// Retablo de la portada: 6 × 7 azulejos. El marco se "coloca" en el sentido
-// de las agujas del reloj y luego el centro liso.
-function tiles(cols = 6, rows = 7) {
-  const ring = [];
-  for (let c = 0; c < cols; c++) ring.push([0, c]);
-  for (let r = 1; r < rows; r++) ring.push([r, cols - 1]);
-  for (let c = cols - 2; c >= 0; c--) ring.push([rows - 1, c]);
-  for (let r = rows - 2; r > 0; r--) ring.push([r, 0]);
-  const order = new Map(ring.map(([r, c], i) => [`${r},${c}`, i]));
-  let out = '';
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols; c++) {
-      const i = order.get(`${r},${c}`);
-      out +=
-        i === undefined
-          ? `<span class="pieza pieza--lisa" style="--d:${ring.length * 40 + (r + c) * 25}ms"></span>`
-          : `<span class="pieza" style="--d:${i * 40}ms"></span>`;
-    }
-  }
-  return out;
-}
 
 export async function renderHome(asset, env, url) {
   const [a, b] = EVENT.couple;
@@ -79,7 +58,7 @@ export async function renderHome(asset, env, url) {
     TITLE: esc(`${a} y ${b} se casan`),
     DESCRIPTION: esc(`${longDate(EVENT.date)} en ${EVENT.venue.name}, ${EVENT.venue.town}. Confirma tu asistencia aquí.`),
     DATE_ISO: esc(EVENT.date),
-    DATE_LONG: esc(longDate(EVENT.date)),
+    DATE_LONG: esc(longDate(EVENT.date).replace(/^./, (c) => c.toUpperCase())),
     DATE_SHORT: esc(shortDate(EVENT.date)),
     TIME: esc(time(EVENT.date)),
     DEADLINE: esc(dayMonth(EVENT.rsvpDeadline)),
@@ -96,7 +75,6 @@ export async function renderHome(asset, env, url) {
     STOPS: b_.stops,
     FAQ: b_.faq,
     GIFT: b_.gift,
-    TILES: b_.tiles,
   };
   const html = (await asset.text()).replace(/\{\{([A-Z_]+)\}\}/g, (m, k) => (k in tokens ? tokens[k] : m));
   return new Response(html, {

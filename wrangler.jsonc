@@ -18,7 +18,7 @@
       "binding": "DB",
       "database_name": "boda",
       // Sustituir por el id que devuelve: npx wrangler d1 create boda
-      "database_id": "00000000-0000-0000-0000-000000000000",
+      "database_id": "bfea2ab5-a6fd-4269-b9ef-9d9067c49dbc",
       "migrations_dir": "migrations"
     }
   ],
