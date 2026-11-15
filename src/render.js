@@ -1,0 +1,105 @@
+import { EVENT } from './config.js';
+
+const esc = (s) =>
+  String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+
+const TZ = 'Europe/Madrid';
+const longDate = (iso) =>
+  new Intl.DateTimeFormat('es-ES', { timeZone: TZ, weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(iso));
+const shortDate = (iso) =>
+  new Intl.DateTimeFormat('es-ES', { timeZone: TZ, day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(iso)).replace(/\//g, '.');
+const dayMonth = (iso) => new Intl.DateTimeFormat('es-ES', { timeZone: TZ, day: 'numeric', month: 'long' }).format(new Date(iso));
+const time = (iso) => new Intl.DateTimeFormat('es-ES', { timeZone: TZ, hour: '2-digit', minute: '2-digit' }).format(new Date(iso));
+
+function blocks() {
+  const schedule = EVENT.schedule
+    .map(
+      (s) => `<li class="hora">
+        <time class="hora__t">${esc(s.time)}</time>
+        <div><p class="hora__titulo">${esc(s.title)}</p><p class="hora__texto">${esc(s.text)}</p></div>
+      </li>`
+    )
+    .join('');
+
+  const stops = EVENT.bus.stops
+    .map(
+      (s) => `<li class="parada">
+        <p class="parada__nombre">${esc(s.name)}</p>
+        <p class="parada__horas">Sale a las ${esc(s.out)}. Vuelve a las ${esc(s.back)}.</p>
+        <a class="enlace" href="${esc(s.mapsUrl)}" target="_blank" rel="noopener">Ver la parada en el mapa</a>
+      </li>`
+    )
+    .join('');
+
+  const faq = EVENT.faq
+    .map((f) => `<details class="faq"><summary>${esc(f.q)}</summary><p>${esc(f.a)}</p></details>`)
+    .join('');
+
+  const gift = EVENT.gift.iban
+    ? `<section class="seccion" id="regalo" aria-labelledby="t-regalo">
+        <h2 class="titulo" id="t-regalo">Regalo</h2>
+        <p>${esc(EVENT.gift.text)}</p>
+        <div class="iban"><code id="iban">${esc(EVENT.gift.iban)}</code>
+          <button type="button" class="boton boton--secundario" data-copiar="iban">Copiar</button></div>
+      </section>`
+    : '';
+
+  return { schedule, stops, faq, gift, tiles: tiles() };
+}
+
+// Retablo de la portada: 6 × 7 azulejos. El marco se "coloca" en el sentido
+// de las agujas del reloj y luego el centro liso.
+function tiles(cols = 6, rows = 7) {
+  const ring = [];
+  for (let c = 0; c < cols; c++) ring.push([0, c]);
+  for (let r = 1; r < rows; r++) ring.push([r, cols - 1]);
+  for (let c = cols - 2; c >= 0; c--) ring.push([rows - 1, c]);
+  for (let r = rows - 2; r > 0; r--) ring.push([r, 0]);
+  const order = new Map(ring.map(([r, c], i) => [`${r},${c}`, i]));
+  let out = '';
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const i = order.get(`${r},${c}`);
+      out +=
+        i === undefined
+          ? `<span class="pieza pieza--lisa" style="--d:${ring.length * 40 + (r + c) * 25}ms"></span>`
+          : `<span class="pieza" style="--d:${i * 40}ms"></span>`;
+    }
+  }
+  return out;
+}
+
+export async function renderHome(asset, env, url) {
+  const [a, b] = EVENT.couple;
+  const b_ = blocks();
+  const base = (env.PUBLIC_URL || url.origin).replace(/\/$/, '');
+  const tokens = {
+    A: esc(a),
+    B: esc(b),
+    TITLE: esc(`${a} y ${b} se casan`),
+    DESCRIPTION: esc(`${longDate(EVENT.date)} en ${EVENT.venue.name}, ${EVENT.venue.town}. Confirma tu asistencia aquí.`),
+    DATE_ISO: esc(EVENT.date),
+    DATE_LONG: esc(longDate(EVENT.date)),
+    DATE_SHORT: esc(shortDate(EVENT.date)),
+    TIME: esc(time(EVENT.date)),
+    DEADLINE: esc(dayMonth(EVENT.rsvpDeadline)),
+    VENUE: esc(EVENT.venue.name),
+    TOWN: esc(EVENT.venue.town),
+    ADDRESS: esc(EVENT.venue.address),
+    MAPS: esc(EVENT.venue.mapsUrl),
+    WAZE: esc(EVENT.venue.wazeUrl),
+    PARKING: esc(EVENT.venue.parking),
+    INTRO: esc(EVENT.intro),
+    BUS_NOTE: esc(EVENT.bus.note),
+    BASE: esc(base),
+    SCHEDULE: b_.schedule,
+    STOPS: b_.stops,
+    FAQ: b_.faq,
+    GIFT: b_.gift,
+    TILES: b_.tiles,
+  };
+  const html = (await asset.text()).replace(/\{\{([A-Z_]+)\}\}/g, (m, k) => (k in tokens ? tokens[k] : m));
+  return new Response(html, {
+    headers: { 'content-type': 'text/html; charset=utf-8', 'cache-control': 'public, max-age=300' },
+  });
+}

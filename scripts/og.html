@@ -1,0 +1,19 @@
+<!doctype html>
+<!-- Plantilla de la imagen que sale al compartir el enlace (1200×630).
+     Regenerar: python3 scripts/og.py "Carlos" "Nombre" "24.04.2027" -->
+<html><head><meta charset="utf-8"><style>
+@font-face { font-family: Gloock; src: url(../public/fonts/gloock-400.woff2); }
+@font-face { font-family: Hanken; src: url(../public/fonts/hanken-500.woff2); }
+html, body { margin: 0; }
+body { width: 1200px; height: 630px; display: grid; place-items: center;
+  background: #d3d9d3 url(../public/img/azulejo.svg) 0 0 / 105px 105px; }
+.placa { width: 760px; height: 420px; background: #fcfcfa; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; text-align: center; box-shadow: 0 0 0 4px #d3d9d3, 0 30px 60px -30px rgba(22,48,110,.6);
+  outline: 3px solid #1e3f8f; outline-offset: -26px; }
+h1 { white-space: nowrap; font: 400 98px/0.95 Gloock; color: #1e3f8f; margin: 0 0 22px; letter-spacing: -1px; }
+h1 span { font-size: 52px; display: inline-block; margin: 0 18px; vertical-align: middle; }
+.f { font: 400 44px Gloock; color: #1a2547; letter-spacing: 3px; margin: 0; }
+.l { font: 500 26px Hanken; color: #4a5672; margin: 10px 0 0; }
+</style></head><body>
+<div class="placa"><h1 id="n">Carlos<span>y</span>Nombre</h1><p class="f" id="f">24.04.2027</p><p class="l">Villa Delia, Picanya</p></div>
+</body></html>

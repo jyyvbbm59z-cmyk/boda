@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>{{TITLE}}</title>
+  <meta name="description" content="{{DESCRIPTION}}">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="theme-color" content="#1E3F8F">
+
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="{{TITLE}}">
+  <meta property="og:description" content="{{DESCRIPTION}}">
+  <meta property="og:image" content="{{BASE}}/img/og.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:url" content="{{BASE}}/">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="preload" href="/fonts/gloock-400.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="portada">
+    <div class="retablo">
+      <div class="retablo__piezas" aria-hidden="true">{{TILES}}</div>
+      <div class="retablo__placa">
+        <h1 class="nombres">
+          <span class="nombres__uno">{{A}}</span>
+          <span class="nombres__y">y</span>
+          <span class="nombres__dos">{{B}}</span>
+        </h1>
+        <p class="placa__fecha"><time datetime="{{DATE_ISO}}">{{DATE_SHORT}}</time></p>
+        <p class="placa__lugar">{{VENUE}}, Picanya</p>
+      </div>
+    </div>
+
+    <div class="portada__pie">
+      <p class="cuando">Nos casamos el {{DATE_LONG}}, a las {{TIME}}.</p>
+      <p class="cuenta" id="cuenta" data-fecha="{{DATE_ISO}}"></p>
+      <a class="boton" href="#confirmar">Confirmar asistencia</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="seccion seccion--entrada">
+      <p class="entrada">{{INTRO}}</p>
+    </section>
+
+    <section class="seccion" id="dia" aria-labelledby="t-dia">
+      <h2 class="titulo" id="t-dia">El día</h2>
+      <ol class="horario">{{SCHEDULE}}</ol>
+    </section>
+
+    <section class="seccion" id="llegar" aria-labelledby="t-llegar">
+      <h2 class="titulo" id="t-llegar">Cómo llegar</h2>
+      <p class="direccion"><strong>{{VENUE}}</strong><br>{{ADDRESS}}</p>
+      <p>{{PARKING}}</p>
+      <div class="botones">
+        <a class="boton boton--secundario" href="{{MAPS}}" target="_blank" rel="noopener">Abrir en Google Maps</a>
+        <a class="boton boton--secundario" href="{{WAZE}}" target="_blank" rel="noopener">Abrir en Waze</a>
+        <a class="boton boton--secundario" href="/calendar.ics">Añadir al calendario</a>
+      </div>
+    </section>
+
+    <section class="seccion" id="autobus" aria-labelledby="t-autobus">
+      <h2 class="titulo" id="t-autobus">Autobús</h2>
+      <p>{{BUS_NOTE}}</p>
+      <ul class="paradas">{{STOPS}}</ul>
+    </section>
+
+    <div class="cenefa" aria-hidden="true"></div>
+
+    <section class="seccion seccion--confirmar" id="confirmar" aria-labelledby="t-confirmar">
+      <h2 class="titulo" id="t-confirmar">Confirma tu asistencia</h2>
+      <p class="plazo">Podéis contestar y cambiar la respuesta hasta el {{DEADLINE}}.</p>
+      <div id="rsvp" class="rsvp" aria-live="polite">
+        <noscript><p>Para confirmar necesitas tener JavaScript activado en el navegador.</p></noscript>
+      </div>
+    </section>
+
+    {{GIFT}}
+
+    <section class="seccion" id="preguntas" aria-labelledby="t-preguntas">
+      <h2 class="titulo" id="t-preguntas">Preguntas</h2>
+      {{FAQ}}
+    </section>
+  </main>
+
+  <footer class="pie">
+    <div class="cenefa" aria-hidden="true"></div>
+    <p class="pie__nombres">{{A}} y {{B}}</p>
+    <p class="pie__fecha">{{DATE_SHORT}}</p>
+  </footer>
+
+  <a class="flotante" href="#confirmar" id="flotante">Confirmar asistencia</a>
+
+  <script src="/app.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+node_modules/
+.wrangler/
+.dev.vars
+# Datos personales de los invitados: no van al repositorio
+invitados.csv
+invitados.sql
+invitaciones.csv
