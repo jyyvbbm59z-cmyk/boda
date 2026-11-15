@@ -336,7 +336,7 @@
     const d = state.data;
     root.innerHTML = `
       ${greeting()}
-      <p>${d.attending ? `Ya nos dijisteis que venís. ¡Qué ganas!` : 'Ya nos dijisteis que no podéis venir.'}</p>
+      <p>${d.attending ? 'Ya nos has enviado tu respuesta. ¡Qué ganas de veros!' : 'Ya nos has enviado tu respuesta: esta vez no podéis venir. Os echaremos de menos.'}</p>
       ${summaryList()}
       ${inv.open
         ? '<button type="button" class="boton boton--secundario boton--ancho" id="cambiar">Cambiar mi respuesta</button>'
