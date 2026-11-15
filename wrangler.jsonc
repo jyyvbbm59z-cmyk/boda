@@ -33,7 +33,7 @@
 
   "vars": {
     // URL pública de la web, para los enlaces de invitación y el bot
-    "PUBLIC_URL": "https://boda.tudominio.es"
+    "PUBLIC_URL": "https://boda.salanovacarlos.workers.dev"
   }
   // Secretos (npx wrangler secret put NOMBRE):
   //   TELEGRAM_BOT_TOKEN       token de @BotFather
