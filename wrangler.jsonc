@@ -5,6 +5,10 @@
   "compatibility_date": "2026-11-01",
   "compatibility_flags": ["nodejs_compat"],
 
+  // Conserva las variables y secretos puestos en el panel de Cloudflare
+  // (si no, cada despliegue las borra)
+  "keep_vars": true,
+
   // La web (public/) la sirve Cloudflare directamente; el Worker entra primero
   // en la portada (para meter los textos de src/config.js) y en la API.
   "assets": {
