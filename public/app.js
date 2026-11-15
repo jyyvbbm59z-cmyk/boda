@@ -374,7 +374,7 @@
   // (a sí mismos, con «Tú» o «Mensaje a ti mismo») o copiarlo.
   function ownLink() {
     const url = `${location.origin}/?r=${state.invite.token}`;
-    const pareja = document.title.replace(/ se casan$/, '');
+    const pareja = [...document.querySelectorAll('.nombres__uno, .nombres__dos')].map((n) => n.textContent.trim()).join(' y ');
     const texto = `Mi respuesta para la boda de ${pareja}. Para verla o cambiarla: ${url}`;
     return `<div class="enlace-propio">
       <p class="enlace-propio__titulo">Guarda tu enlace</p>
